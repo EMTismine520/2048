@@ -52,6 +52,7 @@ function validateState(data) {
       || data.board.some(row => !Array.isArray(row) || row.length !== 4 || row.some(value => !isTileValue(value)))
       || !Number.isSafeInteger(data.score) || data.score < 0
       || typeof data.won !== "boolean" || typeof data.gameOver !== "boolean"
+      || (data.clearUsed !== undefined && typeof data.clearUsed !== "boolean")
       || !Number.isInteger(data.rngState) || data.rngState < 1 || data.rngState > 0xffffffff) {
     throw new Error("存档格式错误");
   }
@@ -64,6 +65,7 @@ function validateState(data) {
     score: data.score,
     won: data.won,
     gameOver: data.gameOver,
+    clearUsed: data.clearUsed ?? false,
     rngState: data.rngState,
   };
 }
@@ -79,6 +81,7 @@ class Game2048 {
     this.score = 0;
     this.won = false;
     this.gameOver = false;
+    this.clearUsed = false;
     this.lastMoveScore = 0;
     this.history = [];
     this.spawnTile();
@@ -102,6 +105,7 @@ class Game2048 {
       score: this.score,
       won: this.won,
       gameOver: this.gameOver,
+      clearUsed: this.clearUsed,
       rngState: this.rng.state,
     };
   }
@@ -111,6 +115,7 @@ class Game2048 {
     this.score = state.score;
     this.won = state.won;
     this.gameOver = state.gameOver;
+    this.clearUsed = state.clearUsed ?? false;
     this.rng.state = state.rngState;
     this.lastMoveScore = 0;
   }
@@ -179,6 +184,29 @@ class Game2048 {
       this.board[r][c] = 0;
     });
     this.gameOver = false;
+    this.lastMoveScore = 0;
+    return true;
+  }
+
+  clearTiles() {
+    if (this.clearUsed || this.gameOver) return false;
+    const values = this.board.flat().filter(v => v > 0);
+    if (!values.length) return false;
+    const minVal = Math.min(...values);
+    const positions = [];
+    this.board.forEach((row, r) => {
+      row.forEach((v, c) => {
+        if (v === minVal) positions.push([r, c]);
+      });
+    });
+    for (let i = positions.length - 1; i > 0; i--) {
+      const j = Math.floor(this.rng.next() * (i + 1));
+      [positions[i], positions[j]] = [positions[j], positions[i]];
+    }
+    positions.slice(0, 3).forEach(([r, c]) => {
+      this.board[r][c] = 0;
+    });
+    this.clearUsed = true;
     this.lastMoveScore = 0;
     return true;
   }

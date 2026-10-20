@@ -19,6 +19,7 @@ class Game2048:
         self.won = False
         self.game_over = False
         self.last_move_score = 0
+        self.clear_used = False
         self._history: list[dict[str, Any]] = []
         self.reset()
 
@@ -28,6 +29,7 @@ class Game2048:
         self.score = 0
         self.won = False
         self.game_over = False
+        self.clear_used = False
         self.last_move_score = 0
         self._history.clear()
         self._spawn_tile()
@@ -105,6 +107,37 @@ class Game2048:
             self.board[row][col] = 0
 
         self.game_over = False
+        self.clear_used = True
+        self.last_move_score = 0
+        return True
+
+    def clear_tiles(self) -> bool:
+        """清除方块功能：删除3个最小值方块，只能使用一次。"""
+        if self.clear_used:
+            return False
+
+        # 找最小的非零方块值
+        min_value = min(
+            (value for row in self.board for value in row if value),
+            default=0
+        )
+        if min_value == 0:
+            return False
+
+        # 收集所有等于最小值的位置
+        positions = [
+            (row, col)
+            for row in range(self.SIZE)
+            for col in range(self.SIZE)
+            if self.board[row][col] == min_value
+        ]
+
+        # 随机删除最多3个
+        self.rng.shuffle(positions)
+        for row, col in positions[:3]:
+            self.board[row][col] = 0
+
+        self.clear_used = True
         self.last_move_score = 0
         return True
 
@@ -115,6 +148,7 @@ class Game2048:
             "score": self.score,
             "won": self.won,
             "game_over": self.game_over,
+            "clear_used": self.clear_used,
         }
 
     def to_dict(self) -> dict[str, Any]:
@@ -151,6 +185,7 @@ class Game2048:
         self.score = current["score"]
         self.won = current["won"]
         self.game_over = current["game_over"]
+        self.clear_used = current.get("clear_used", False)
         self._history = validated_history
         if rng_state is not None:
             self.rng.setstate(rng_state)
@@ -168,6 +203,7 @@ class Game2048:
             "score": snapshot["score"],
             "won": snapshot["won"],
             "game_over": snapshot["game_over"],
+            "clear_used": snapshot.get("clear_used", False),
         }
         if "rng_state" in snapshot:
             copied["rng_state"] = Game2048._json_ready(snapshot["rng_state"])
@@ -179,6 +215,7 @@ class Game2048:
         self.score = validated["score"]
         self.won = validated["won"]
         self.game_over = validated["game_over"]
+        self.clear_used = validated.get("clear_used", False)
         if restore_rng and "rng_state" in snapshot:
             try:
                 self.rng.setstate(self._tuple_from_json(snapshot["rng_state"]))
@@ -204,11 +241,15 @@ class Game2048:
             raise ValueError("分数格式错误")
         if not isinstance(won, bool) or not isinstance(game_over, bool):
             raise ValueError("游戏状态格式错误")
+        clear_used = snapshot.get("clear_used", False)
+        if not isinstance(clear_used, bool):
+            raise ValueError("清除状态格式错误")
         validated = {
             "board": [row[:] for row in board],
             "score": score,
             "won": won,
             "game_over": game_over,
+            "clear_used": clear_used,
         }
         if "rng_state" in snapshot:
             cls._parse_rng_state(snapshot["rng_state"])

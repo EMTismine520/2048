@@ -164,6 +164,23 @@ class GameUI:
         )
         self.undo_button.pack(side="left", padx=(0, 8))
 
+        self.clear_button = tk.Button(
+            button_row,
+            text="清除方块",
+            command=self.clear_tiles,
+            bg="#7c9e99",
+            fg="white",
+            activebackground="#5f7e7a",
+            activeforeground="white",
+            font=(self.font_family, 11, "bold"),
+            relief="flat",
+            padx=12,
+            pady=8,
+            cursor="hand2",
+            takefocus=False,
+        )
+        self.clear_button.pack(side="left", padx=(0, 8))
+
         self.restart_button = tk.Button(
             button_row,
             text="重新开始",
@@ -259,9 +276,12 @@ class GameUI:
         self._update_controls()
 
     def _update_controls(self) -> None:
-        button = getattr(self, "undo_button", None)
-        if button is not None:
-            button.configure(state=tk.NORMAL if self.game.can_undo() else tk.DISABLED)
+        undo_button = getattr(self, "undo_button", None)
+        if undo_button is not None:
+            undo_button.configure(state=tk.NORMAL if self.game.can_undo() else tk.DISABLED)
+        clear_button = getattr(self, "clear_button", None)
+        if clear_button is not None:
+            clear_button.configure(state=tk.NORMAL if not self.game.clear_used else tk.DISABLED)
 
     def _save_game(self) -> bool:
         storage = getattr(self, "storage", None)
@@ -349,6 +369,25 @@ class GameUI:
             return
         self._draw_board()
         self._save_game()
+
+    def clear_tiles(self) -> None:
+        """清除3个最小的方块。"""
+        if self._dialog_open:
+            return
+        if self.game.clear_used:
+            messagebox.showinfo("无法清除", "清除方块功能已使用过，每局只能使用一次。", parent=self.root)
+            return
+        if messagebox.askyesno(
+            "清除方块",
+            "将删除3个最小的方块\n\n确定要使用清除功能吗？\n（每局只能使用一次）",
+            parent=self.root,
+        ):
+            if self.game.revive():
+                self._draw_board()
+                self._save_game()
+                messagebox.showinfo("清除成功", "已删除3个最小的方块！", parent=self.root)
+            else:
+                messagebox.showerror("清除失败", "无法执行清除操作", parent=self.root)
 
     def close(self) -> None:
         """窗口关闭前保存当前游戏。"""

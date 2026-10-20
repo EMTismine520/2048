@@ -19,6 +19,7 @@
 
     <view class="toolbar">
       <button class="button secondary" disabled="{{!canUndo}}" data-action="undo" bindtap="onUndo">↶  撤销一步</button>
+      <button class="button secondary" disabled="{{clearUsed}}" bindtap="onClearTiles">清除方块</button>
       <button class="button primary" bindtap="onRestart">重新开始  ↗</button>
     </view>
 

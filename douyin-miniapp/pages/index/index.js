@@ -22,6 +22,7 @@ Page({
     boardRows: [],
     score: 0,
     canUndo: false,
+    clearUsed: false,
     won: false,
     gameOver: false,
     showWinDialog: false,
@@ -112,6 +113,7 @@ Page({
       boardRows: boardRows(this.game.board),
       score: this.game.score,
       canUndo: this.game.history.length > 0,
+      clearUsed: this.game.clearUsed,
       won: this.game.won,
       gameOver: this.game.gameOver,
       gain: this.game.lastMoveScore || 0,
@@ -229,6 +231,12 @@ Page({
     if (!this.game.revive()) return;
     this.setData({ showGameOverDialog: false });
     this.syncView("已复活 · 删除了3个最小方块");
+    this.saveGame();
+  },
+
+  onClearTiles() {
+    if (!this.game.clearTiles()) return;
+    this.syncView("已清除3个最小方块");
     this.saveGame();
   },
 
