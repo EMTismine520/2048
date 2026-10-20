@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2048 音效试听审批</title>
+<style>
+body{font:16px/1.6 system-ui,"Microsoft YaHei",sans-serif;background:#faf8ef;color:#443e38;margin:0}
+main{max-width:880px;margin:auto;padding:28px 20px}h1{font-size:26px;margin:0 0 10px}
+p{margin:8px 0 20px}table{width:100%;border-collapse:collapse}th,td{padding:14px 10px;text-align:left;border-bottom:1px solid #d8cfc5}
+audio{display:block;width:100%;max-width:310px;margin:8px 0}label{font-weight:600}small{display:block;color:#665d54}
+.sets{display:flex;gap:28px;flex-wrap:wrap}.sets>section{flex:1;min-width:240px}
+button{font:inherit;padding:8px 14px;cursor:pointer}textarea{display:block;box-sizing:border-box;width:100%;padding:12px;margin-top:12px;font:inherit}
+footer{margin-top:24px;font-size:14px}a{color:#73502e}
+@media(max-width:540px){main{padding:20px 12px}td,th{padding:10px 4px}audio{min-width:100px}th{width:36px}small{overflow-wrap:anywhere}}
+</style></head><body><main>
+<h1>2048 音效试听审批</h1>
+<p>五类操作各有 A / B 两个候选。先试听整组，再逐项比较；选好后把审批文字发回聊天。</p>
+<div class="sets">
+<section><h2>A 组</h2><audio controls preload="none" src="set_A.wav" aria-label="A组完整试听"></audio></section>
+<section><h2>B 组</h2><audio controls preload="none" src="set_B.wav" aria-label="B组完整试听"></audio></section>
+</div>
+<p>整组顺序：移动 → 合并 → 撤销 → 胜利 → 结束。每个音效重复两次，操作之间间隔 0.7 秒。</p>
+<table><thead><tr><th>操作</th><th>A 候选</th><th>B 候选</th></tr></thead><tbody><tr><th scope="row">移动</th><td><label><input type="radio" name="move" value="A"> 移动A</label><audio controls preload="none" src="move_A.wav" aria-label="移动A试听"></audio><small>click_002.wav · 0.012 秒</small></td><td><label><input type="radio" name="move" value="B"> 移动B</label><audio controls preload="none" src="move_B.wav" aria-label="移动B试听"></audio><small>click_001.wav · 0.115 秒</small></td></tr><tr><th scope="row">合并</th><td><label><input type="radio" name="merge" value="A"> 合并A</label><audio controls preload="none" src="merge_A.wav" aria-label="合并A试听"></audio><small>pluck_001.wav · 0.112 秒</small></td><td><label><input type="radio" name="merge" value="B"> 合并B</label><audio controls preload="none" src="merge_B.wav" aria-label="合并B试听"></audio><small>glass_001.wav · 0.292 秒</small></td></tr><tr><th scope="row">撤销</th><td><label><input type="radio" name="undo" value="A"> 撤销A</label><audio controls preload="none" src="undo_A.wav" aria-label="撤销A试听"></audio><small>back_001.wav · 0.068 秒</small></td><td><label><input type="radio" name="undo" value="B"> 撤销B</label><audio controls preload="none" src="undo_B.wav" aria-label="撤销B试听"></audio><small>back_003.wav · 0.094 秒</small></td></tr><tr><th scope="row">胜利</th><td><label><input type="radio" name="win" value="A"> 胜利A</label><audio controls preload="none" src="win_A.wav" aria-label="胜利A试听"></audio><small>confirmation_001.wav · 0.295 秒</small></td><td><label><input type="radio" name="win" value="B"> 胜利B</label><audio controls preload="none" src="win_B.wav" aria-label="胜利B试听"></audio><small>confirmation_002.wav · 0.562 秒</small></td></tr><tr><th scope="row">结束</th><td><label><input type="radio" name="game_over" value="A"> 结束A</label><audio controls preload="none" src="game_over_A.wav" aria-label="结束A试听"></audio><small>error_004.wav · 0.104 秒</small></td><td><label><input type="radio" name="game_over" value="B"> 结束B</label><audio controls preload="none" src="game_over_B.wav" aria-label="结束B试听"></audio><small>error_005.wav · 0.518 秒</small></td></tr></tbody></table>
+<p><button type="button" id="all-a">全选 A</button> <button type="button" id="all-b">全选 B</button></p>
+<label for="approval">审批文字</label><textarea id="approval" rows="2" readonly placeholder="选择候选后自动生成，可复制到聊天"></textarea>
+<p id="selection-status" role="status">尚未选择</p>
+<footer>作者：Kenney。许可证：CC0。仅准备试听，尚未替换游戏音效。<br>
+<a href="https://kenney.nl/assets/interface-sounds" target="_blank" rel="noopener">作者主页</a> ·
+<a href="https://opengameart.org/content/interface-sounds" target="_blank" rel="noopener">原始发布页</a> ·
+<a href="LICENSE.txt">原始许可证</a> · <a href="manifest.json">文件来源与校验记录</a></footer>
+</main><script>
+const events = [['move','移动'],['merge','合并'],['undo','撤销'],['win','胜利'],['game_over','结束']];
+function update(){const choices=events.map(([key,label])=>{const el=document.querySelector('input[name="'+key+'"]:checked');return el?label+el.value:null});document.getElementById('approval').value=choices.filter(Boolean).join('、');document.getElementById('selection-status').textContent=choices.every(Boolean)?'已选择全部操作；复制审批文字发回聊天。':'已选择 '+choices.filter(Boolean).length+' / 5 项';}
+document.querySelectorAll('input[type=radio]').forEach(el=>el.addEventListener('change',update));
+for (const variant of ['A','B']) document.getElementById('all-'+variant.toLowerCase()).addEventListener('click',()=>{document.querySelectorAll('input[value="'+variant+'"]').forEach(el=>{el.checked=true});update()});
+document.querySelectorAll('audio').forEach(el=>el.addEventListener('play',()=>{document.querySelectorAll('audio').forEach(other=>{if(other!==el)other.pause()})}));
+</script></body></html>

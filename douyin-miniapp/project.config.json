@@ -1,0 +1,13 @@
+{
+  "description": "抖音小程序版 2048",
+  "projectname": "douyin-2048",
+  "appid": "ttxxxxxxxxxxxxxxxx",
+  "compileType": "miniprogram",
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "minified": false,
+    "postcss": true,
+    "component2": true
+  }
+}

@@ -1,0 +1,82 @@
+<view class="page" bindkeydown="onKeyDown">
+  <view class="game-shell">
+    <view class="header">
+      <view>
+        <text class="eyebrow">随手来一局</text>
+        <text class="title">2048<text class="title-dot">.</text></text>
+      </view>
+      <view class="score-box">
+        <text class="score-caption">当前得分</text>
+        <text class="score">{{score}}</text>
+        <text class="gain" tt:if="{{gain}}">+{{gain}}</text>
+      </view>
+    </view>
+
+    <view class="intro-row">
+      <text class="intro">滑动方块，<text class="intro-strong">合成 2048</text></text>
+      <text class="edition">抖音版</text>
+    </view>
+
+    <view class="toolbar">
+      <button class="button secondary" disabled="{{!canUndo}}" data-action="undo" bindtap="onUndo">↶  撤销一步</button>
+      <button class="button primary" bindtap="onRestart">重新开始  ↗</button>
+    </view>
+
+    <view
+      class="board"
+      role="grid"
+      aria-label="2048 棋盘，在此上下左右滑动"
+      bindtouchstart="onTouchStart"
+      catchtouchmove="onTouchMove"
+      bindtouchend="onTouchEnd"
+    >
+      <view class="board-row" tt:for="{{boardRows}}" tt:for-item="row" tt:for-index="rowIndex" tt:key="rowIndex" role="row">
+        <view class="tile {{cell.className}}" tt:for="{{row}}" tt:for-item="cell" tt:for-index="cellIndex" tt:key="cellIndex" role="gridcell">{{cell.label}}</view>
+      </view>
+    </view>
+
+    <view class="below-board">
+      <text class="status">{{status}}</text>
+      <button class="sound-button" aria-pressed="{{soundEnabled}}" bindtap="onToggleSound">音效 {{soundEnabled ? '开' : '关'}}</button>
+    </view>
+
+    <view class="direction-controls" aria-label="点按方向移动">
+      <button data-direction="left" bindtap="onDirectionTap" aria-label="向左移动">←</button>
+      <button data-direction="up" bindtap="onDirectionTap" aria-label="向上移动">↑</button>
+      <button data-direction="down" bindtap="onDirectionTap" aria-label="向下移动">↓</button>
+      <button data-direction="right" bindtap="onDirectionTap" aria-label="向右移动">→</button>
+    </view>
+
+    <view class="footer">
+      <text>在棋盘上滑动，或点按方向按钮</text>
+      <text>相同数字相遇即可合并 · 支持方向键 / WASD</text>
+    </view>
+  </view>
+
+  <view class="dialog-mask" tt:if="{{showWinDialog}}" catchtap="noop">
+    <view class="dialog" catchtap="noop">
+      <view class="dialog-icon">2048</view>
+      <text class="dialog-title">恭喜你！</text>
+      <text class="dialog-description">你合成了 2048！
+关闭提示后可以继续挑战。</text>
+      <view class="dialog-actions">
+        <button class="button secondary" bindtap="onDialogRestart">再来一局</button>
+        <button class="button primary" bindtap="onContinueWin">继续挑战</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="dialog-mask" tt:if="{{showGameOverDialog}}" catchtap="noop">
+    <view class="dialog" catchtap="noop">
+      <view class="dialog-icon">2048</view>
+      <text class="dialog-title">游戏结束</text>
+      <text class="dialog-description">最终得分：{{score}}
+
+点击"复活"删除3个最小方块继续游戏</text>
+      <view class="dialog-actions">
+        <button class="button secondary" bindtap="onRevive">复活</button>
+        <button class="button primary" bindtap="onDialogRestart">重新开始</button>
+      </view>
+    </view>
+  </view>
+</view>
