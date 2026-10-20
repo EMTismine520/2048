@@ -9,6 +9,7 @@ const statusElement = document.querySelector("#status");
 const announcementElement = document.querySelector("#announcement");
 const undoButton = document.querySelector("#undo");
 const restartButton = document.querySelector("#restart");
+const clearButton = document.querySelector("#clear");
 const soundButton = document.querySelector("#sound");
 const dialog = document.querySelector("#dialog");
 const dialogTitle = document.querySelector("#dialog-title");
@@ -98,6 +99,7 @@ function render() {
   }
   scoreElement.textContent = String(game.score);
   undoButton.disabled = game.history.length === 0;
+  clearButton.disabled = game.clearUsed;
 }
 
 function closeDialog() {
@@ -172,6 +174,14 @@ document.querySelectorAll("[data-direction]").forEach(button => {
 });
 restartButton.addEventListener("click", newGame);
 undoButton.addEventListener("click", undo);
+clearButton.addEventListener("click", () => {
+  if (game.clearTiles()) {
+    render();
+    saveGame();
+    setStatus("已清除 · 删除了3个最小方块");
+    boardElement.focus({ preventScroll: true });
+  }
+});
 soundButton.addEventListener("click", () => {
   soundEnabled = !soundEnabled;
   try { localStorage.setItem(SOUND_KEY, soundEnabled ? "1" : "0"); } catch { /* 只影响偏好记忆，不影响游戏。 */ }

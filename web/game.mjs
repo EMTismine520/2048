@@ -46,7 +46,14 @@ function validateState(data) {
   if (data.gameOver !== !canMove(board) || data.won !== board.flat().some(v => v >= 2048)) {
     throw new Error('存档状态错误');
   }
-  return { board, score: data.score, won: data.won, gameOver: data.gameOver, rngState: data.rngState };
+  return {
+    board,
+    score: data.score,
+    won: data.won,
+    gameOver: data.gameOver,
+    rngState: data.rngState,
+    clearUsed: data.clearUsed ?? false
+  };
 }
 
 export class Game2048 {
@@ -60,6 +67,7 @@ export class Game2048 {
     this.won = false;
     this.gameOver = false;
     this.lastMoveScore = 0;
+    this.clearUsed = false;
     this.history = [];
     this.spawnTile();
     this.spawnTile();
@@ -74,7 +82,7 @@ export class Game2048 {
   }
   snapshot() {
     return { board: this.board.map(row => [...row]), score: this.score, won: this.won,
-      gameOver: this.gameOver, rngState: this.rng.state };
+      gameOver: this.gameOver, rngState: this.rng.state, clearUsed: this.clearUsed };
   }
   restore(state) {
     this.board = state.board.map(row => [...row]);
@@ -82,6 +90,7 @@ export class Game2048 {
     this.won = state.won;
     this.gameOver = state.gameOver;
     this.rng.state = state.rngState;
+    this.clearUsed = state.clearUsed ?? false;
     this.lastMoveScore = 0;
   }
   move(direction) {
@@ -138,6 +147,28 @@ export class Game2048 {
       this.board[r][c] = 0;
     });
     this.gameOver = false;
+    this.lastMoveScore = 0;
+    return true;
+  }
+  clearTiles() {
+    if (this.clearUsed) return false;
+    const values = this.board.flat().filter(v => v > 0);
+    if (!values.length) return false;
+    const minVal = Math.min(...values);
+    const positions = [];
+    this.board.forEach((row, r) => {
+      row.forEach((v, c) => {
+        if (v === minVal) positions.push([r, c]);
+      });
+    });
+    for (let i = positions.length - 1; i > 0; i--) {
+      const j = Math.floor(this.rng.next() * (i + 1));
+      [positions[i], positions[j]] = [positions[j], positions[i]];
+    }
+    positions.slice(0, 3).forEach(([r, c]) => {
+      this.board[r][c] = 0;
+    });
+    this.clearUsed = true;
     this.lastMoveScore = 0;
     return true;
   }
