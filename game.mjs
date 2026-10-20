@@ -119,6 +119,28 @@ export class Game2048 {
     this.restore(this.history.pop());
     return true;
   }
+  revive() {
+    if (!this.gameOver) return false;
+    const values = this.board.flat().filter(v => v > 0);
+    if (!values.length) return false;
+    const minVal = Math.min(...values);
+    const positions = [];
+    this.board.forEach((row, r) => {
+      row.forEach((v, c) => {
+        if (v === minVal) positions.push([r, c]);
+      });
+    });
+    for (let i = positions.length - 1; i > 0; i--) {
+      const j = Math.floor(this.rng.next() * (i + 1));
+      [positions[i], positions[j]] = [positions[j], positions[i]];
+    }
+    positions.slice(0, 3).forEach(([r, c]) => {
+      this.board[r][c] = 0;
+    });
+    this.gameOver = false;
+    this.lastMoveScore = 0;
+    return true;
+  }
   toJSON() {
     return { version: 1, ...this.snapshot(), history: this.history.map(s => ({ ...s, board: s.board.map(r => [...r]) })) };
   }

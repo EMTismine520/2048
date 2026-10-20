@@ -113,9 +113,10 @@ function showDialog(kind) {
     dialogSecondary.hidden = false;
   } else {
     dialogTitle.textContent = "游戏结束";
-    dialogDescription.textContent = `最终得分：${game.score}\n重新开始后可以再来一局。`;
+    dialogDescription.textContent = `最终得分：${game.score}\n\n点击"复活"删除3个最小方块继续游戏`;
     dialogPrimary.textContent = "重新开始";
-    dialogSecondary.hidden = true;
+    dialogSecondary.textContent = "复活";
+    dialogSecondary.hidden = false;
   }
   dialog.dataset.kind = kind;
   if (typeof dialog.showModal === "function") dialog.showModal();
@@ -184,7 +185,19 @@ dialogPrimary.addEventListener("click", () => {
     if (game.gameOver) showDialog("game-over");
   } else newGame();
 });
-dialogSecondary.addEventListener("click", newGame);
+dialogSecondary.addEventListener("click", () => {
+  if (dialog.dataset.kind === "game-over") {
+    if (game.revive()) {
+      closeDialog();
+      render();
+      saveGame();
+      setStatus("已复活 · 删除了3个最小方块");
+      boardElement.focus({ preventScroll: true });
+    }
+  } else {
+    newGame();
+  }
+});
 dialog.addEventListener("cancel", event => {
   if (dialog.dataset.kind === "game-over") event.preventDefault();
 });
