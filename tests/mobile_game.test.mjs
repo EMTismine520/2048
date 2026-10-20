@@ -106,3 +106,29 @@ test("saves and resumes state and rejects corrupt save data", () => {
   assert.throws(() => loaded.load({ version: 1, ...game.snapshot(), history: [{ board: [[1]], rngState: -1 }] }));
   assert.deepEqual(loaded.toJSON(), game.toJSON(), "a bad save must not corrupt the current game");
 });
+
+test("revive removes up to 3 smallest tiles and clears undo history", () => {
+  const game = gameWith([[2, 4, 8, 16], [2, 4, 8, 16], [2, 4, 8, 16], [2, 4, 8, 16]]);
+  game.gameOver = true;
+  game.history = [game.snapshot()];
+  assert.equal(game.revive(), true);
+  assert.equal(game.gameOver, false);
+  const remaining = game.board.flat().filter(v => v === 2);
+  assert.equal(remaining.length, 1, "should remove 3 of the 4 smallest (2s)");
+  assert.equal(game.history.length, 0, "revive must clear undo stack");
+});
+
+test("revive fails when game is not over", () => {
+  const game = gameWith([[2, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]);
+  assert.equal(game.revive(), false);
+});
+
+test("clearTiles removes 3 smallest and can only be used once", () => {
+  const game = gameWith([[2, 4, 8, 2], [2, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]);
+  assert.equal(game.clearUsed, false);
+  assert.equal(game.clearTiles(), true);
+  const remaining = game.board.flat().filter(v => v === 2);
+  assert.equal(remaining.length, 0, "all three 2s should be removed");
+  assert.equal(game.clearUsed, true);
+  assert.equal(game.clearTiles(), false, "second call must fail");
+});

@@ -15,18 +15,18 @@ python mobile.py
 然后打开终端显示的 `http://127.0.0.1:8000` 预览。手机本地验收时，
 需要和电脑连接同一 Wi-Fi，并使用终端打印的局域网地址访问。
 
+若本地 `8000` 端口被占用，可运行 `python mobile.py --port 8001`。
+
 ### 公网部署
 
-- 把整个 `web` 文件夹上传到 GitHub Pages、Cloudflare Pages、Netlify 等静态托管服务，
-  并将 `web` 设为发布目录，入口文件是其中的 `index.html`。
+- 源码位于 `web/` 目录，可上传到 GitHub Pages、Cloudflare Pages、Netlify 等静态托管服务。
+  将 `web` 设为发布目录，入口文件是其中的 `index.html`。
+- 本仓库已配置 `.github/workflows/deploy.yml`：每次推送到 `main` 分支时，GitHub Actions 会自动从 `web/` 生成并部署到 GitHub Pages。
 - 部署完成后，用户使用托管服务提供的 HTTPS 网址即可访问，不需要运行 Python 或连接同一 Wi-Fi。
 - 页面首次打开会缓存 HTML、脚本、样式、图标、清单和合并音效；之后即使断网，仍可从同一网址打开并继续游玩。
-- 手机浏览器可以选择“添加到主屏幕”，以接近独立 App 的方式启动。
-- 若本地 `8000` 端口被占用，可运行 `python mobile.py --port 8001`。
+- 手机浏览器可以选择”添加到主屏幕”，以接近独立 App 的方式启动。
 
 手机端的进度和音效开关保存在浏览器本地；合并时播放 `web/audio_review/win_A.wav`。
-
-要让任何网络下的用户直接访问，请把整个 `web` 文件夹上传到静态托管服务（例如 GitHub Pages、Cloudflare Pages 或 Netlify）。这个文件夹已经自包含网页、离线缓存、图标和合并音效，不需要运行 Python，也不需要电脑和手机在同一 Wi-Fi。当前工作区没有配置公网托管账号，因此无法替你生成最终公网域名。
 
 ## 桌面版
 
@@ -56,13 +56,30 @@ python main.py
 
 ## 项目结构
 
+### 桌面版（Python）
 - `main.py`：启动入口。
 - `game.py`：棋盘状态、移动合并、随机方块及胜负判定。
 - `ui.py`：Tkinter 中文界面和键盘交互。
 - `storage.py`：JSON 存档的读取、校验和原子保存。
 - `sound.py`：播放指定的合并音效。
-- `web/audio_review/win_A.wav`：手机版使用的合并音效；其余候选音效不参与游戏播放。
-- `tests/`：使用标准库 `unittest` 验证游戏规则和界面事件。
+
+### 手机浏览器版（Web）
+- `web/index.html`：入口页面。
+- `web/game.mjs`：游戏核心逻辑（与 Python 版同构，可单独测试）。
+- `web/app.mjs`：装配层，连接各模块。
+- `web/storage.mjs`：存档与偏好设置（localStorage）。
+- `web/input.mjs`：键盘与滑动手势解析。
+- `web/render.mjs`：棋盘渲染与 DOM 更新。
+- `web/dialog.mjs`：胜利 / 游戏结束弹窗。
+- `web/sound.mjs`：合并音效播放与开关。
+- `web/sw.js`：Service Worker，离线缓存。
+- `web/audio_review/win_A.wav`：合并音效；其余候选音效不参与游戏播放。
+
+### 测试与 CI
+- `tests/test_*.py`：Python 版单元测试（unittest）。
+- `tests/*.test.mjs`：Web 版单元测试（Node.js `--test`）。
+- `.github/workflows/test.yml`：每次推送或 PR 时跑全量测试。
+- `.github/workflows/deploy.yml`：推送到 `main` 时自动部署 `web/` 到 GitHub Pages。
 
 Windows 的官方 Python 安装通常包含 Tkinter。若启动时提示找不到 `tkinter`，
 需要在 Python 安装程序中启用 Tcl/Tk 组件；Linux 发行版可能需要安装系统的 Tkinter 包。
@@ -71,5 +88,9 @@ Windows 的官方 Python 安装通常包含 Tkinter。若启动时提示找不�
 ## 运行测试
 
 ```powershell
+# Python 版
 python -m unittest discover -v
+
+# Web 版
+npm test
 ```

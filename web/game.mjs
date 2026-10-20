@@ -128,10 +128,10 @@ export class Game2048 {
     this.restore(this.history.pop());
     return true;
   }
-  revive() {
-    if (!this.gameOver) return false;
+  /** 删除棋盘上 value 最小的前 count 个方块，返回实际删掉的个数。 */
+  removeSmallest(count) {
     const values = this.board.flat().filter(v => v > 0);
-    if (!values.length) return false;
+    if (!values.length) return 0;
     const minVal = Math.min(...values);
     const positions = [];
     this.board.forEach((row, r) => {
@@ -143,31 +143,24 @@ export class Game2048 {
       const j = Math.floor(this.rng.next() * (i + 1));
       [positions[i], positions[j]] = [positions[j], positions[i]];
     }
-    positions.slice(0, 3).forEach(([r, c]) => {
+    positions.slice(0, count).forEach(([r, c]) => {
       this.board[r][c] = 0;
     });
+    return Math.min(count, positions.length);
+  }
+  revive() {
+    if (!this.gameOver) return false;
+    if (!this.removeSmallest(3)) return false;
     this.gameOver = false;
     this.lastMoveScore = 0;
+    // 复活着删掉的方块不可恢复：清掉撤销栈，否则 undo 会把游戏结束前的局面搬回来，
+    // 而那个局面的 gameOver 是 true，又不弹结束框，玩家会被卡死。
+    this.history = [];
     return true;
   }
   clearTiles() {
     if (this.clearUsed) return false;
-    const values = this.board.flat().filter(v => v > 0);
-    if (!values.length) return false;
-    const minVal = Math.min(...values);
-    const positions = [];
-    this.board.forEach((row, r) => {
-      row.forEach((v, c) => {
-        if (v === minVal) positions.push([r, c]);
-      });
-    });
-    for (let i = positions.length - 1; i > 0; i--) {
-      const j = Math.floor(this.rng.next() * (i + 1));
-      [positions[i], positions[j]] = [positions[j], positions[i]];
-    }
-    positions.slice(0, 3).forEach(([r, c]) => {
-      this.board[r][c] = 0;
-    });
+    if (!this.removeSmallest(3)) return false;
     this.clearUsed = true;
     this.lastMoveScore = 0;
     return true;
